@@ -47,16 +47,15 @@ function App() {
     else { setFeedbacks(data || []); setDbError('') }
   }
   useEffect(() => {
-    const client = supabase
-    if (!client) return
-    client.auth.getUser().then(({ data }) => setUser(data.user))
-    const { data: listener } = client.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null))
+    if (!supabase) return
+    supabase.auth.getUser().then(({ data }) => setUser(data.user))
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null))
     void refreshMods(); void refreshFeedback()
-    const realtime = client.channel('frontier-public-changes')
+    const realtime = supabase.channel('frontier-public-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback' }, () => { void refreshFeedback() })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'mods' }, () => { void refreshMods() })
       .subscribe()
-    return () => { listener.subscription.unsubscribe(); void client.removeChannel(realtime) }
+    return () => { listener.subscription.unsubscribe(); void supabase.removeChannel(realtime) }
   }, [])
   useEffect(() => {
     if (!supabase || !user) { setAdmin(false); setAdminOpen(false); return }
