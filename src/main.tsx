@@ -8,6 +8,7 @@ import './style.css'
 
 type Reply = { id:string; feedback_id:string; parent_id:string|null; user_id:string; author_name:string; content:string; created_at:string; updated_at:string }
 type Like = { user_id:string; feedback_id:string|null; reply_id:string|null }
+type Release = { id:string; mod_id:string; version:string; notes:string; published_at:string }
 type Notice = { id:string; user_id:string; body:string; kind:string; feedback_id:string|null; is_read:boolean; created_at:string }
 const kindLabel:Record<string,string> = { review:'AVALIAÇÃO GERAL', suggestion:'SUGESTÃO', bug:'RELATO DE BUG' }
 type AuthMode = 'login' | 'signup'
@@ -45,6 +46,9 @@ function App() {
   const [replyBusy,setReplyBusy] = useState(false)
   const [socialError,setSocialError] = useState('')
   const [kind,setKind] = useState('review')
+  const [releases,setReleases] = useState<Release[]>([])
+  const [categoryFilter,setCategoryFilter] = useState('all')
+  const [searchKind,setSearchKind] = useState('all')
 
   const refreshMods = async () => {
     if (!supabase) return
@@ -67,6 +71,11 @@ function App() {
     if (r.error || l.error) setSocialError((r.error || l.error)?.message || 'Erro ao carregar interações')
     else {setReplies(r.data || []); setLikes(l.data || []); setSocialError('')}
   }
+  const refreshReleases = async () => {
+    if (!supabase) return
+    const {data,error}=await supabase.from('mod_releases').select('*').order('published_at',{ascending:false})
+    if(!error) setReleases(data || [])
+  }
   const refreshNotices = async () => {
     if (!supabase) return
     const {data,error}=await supabase.from('notifications').select('*').order('created_at',{ascending:false}).limit(50)
@@ -81,10 +90,11 @@ function App() {
     if (!client) return
     client.auth.getUser().then(({ data }) => setUser(data.user))
     const { data: listener } = client.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null))
-    void refreshMods(); void refreshFeedback(); void refreshSocial()
+    void refreshMods(); void refreshFeedback(); void refreshSocial(); void refreshReleases()
     const realtime = client.channel('frontier-public-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback' }, () => { void refreshFeedback() })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'mods' }, () => { void refreshMods() })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'mod_releases' }, () => { void refreshReleases() })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback_replies' }, () => { void refreshSocial() })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback_likes' }, () => { void refreshSocial() })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => { void refreshNotices() })
@@ -97,14 +107,15 @@ function App() {
   },[user])
   const current = selected ? mods.find(m => m.id === selected) : null
   const commentsFor = (modId: string) => feedbacks.filter(f => f.mod_id === modId)
-  const filtered = useMemo(() => mods.filter(m => `${m.title} ${m.description} ${m.category}`.toLowerCase().includes(filter.toLowerCase())), [mods, filter])
+  const filtered = useMemo(() => mods.filter(m => `${m.title} ${m.description} ${m.category}`.toLowerCase().includes(filter.toLowerCase()) && (categoryFilter==='all'||m.category===categoryFilter)), [mods, filter,categoryFilter])
+  const categories=useMemo(()=>Array.from(new Set(mods.map(m=>m.category))).sort(),[mods])
   const visibleComments = useMemo(() => {
-    const list = feedbacks.filter(f => f.mod_id === selected)
+    const list = feedbacks.filter(f => f.mod_id === selected && (searchKind==='all'||f.kind===searchKind))
     if (sort === 'highest') list.sort((a,b) => b.rating - a.rating)
     else if (sort === 'lowest') list.sort((a,b) => a.rating - b.rating)
     else list.sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     return list
-  }, [feedbacks, selected, sort])
+  }, [feedbacks, selected, sort,searchKind])
   const average = (modId: string) => { const c = commentsFor(modId); return c.length ? (c.reduce((s,f)=> s + f.rating, 0) / c.length).toFixed(1) : '—' }
   const openReview = (f?: Feedback) => {
     if (!user) { setAuthOpen(true); setAuthMode('login'); return }
@@ -184,18 +195,18 @@ function App() {
       <nav className={menuOpen ? 'nav-links open' : 'nav-links'}><button onClick={() => { setSelected(null); setMenuOpen(false) }}>INÍCIO</button><button onClick={() => { setSelected(null); setMenuOpen(false); document.getElementById('mods')?.scrollIntoView({ behavior: 'smooth' }) }}>EXPLORAR MODS</button><a href="https://www.nexusmods.com/reddeadredemption2" target="_blank" rel="noopener noreferrer">NEXUS MODS <ExternalLink size={12}/></a></nav>
       <div className="nav-actions"><div className="status"><i/> <span>COMUNIDADE AO VIVO</span></div>{user ? <div className="account"><div className="notifications"><button className="bell-button" title="Notificações" aria-label="Notificações" onClick={()=>setNoticeOpen(!noticeOpen)}><Bell size={19}/>{notices.some(n=>!n.is_read)&&<i/>}</button>{noticeOpen&&<div className="notification-list"><div className="notification-title"><strong>NOTIFICAÇÕES ({notices.filter(n=>!n.is_read).length})</strong><button onClick={()=>void markRead()}>Marcar lidas</button></div>{notices.map(n=><button key={n.id} className={n.is_read?'notification-row':'notification-row unread'} onClick={()=>{setNoticeOpen(false);if(n.feedback_id){const f=feedbacks.find(x=>x.id===n.feedback_id);if(f){setSelected(f.mod_id);setAdminOpen(false);window.scrollTo(0,0)}}}}><small>{date(n.created_at)}</small><span>{n.body}</span></button>)}{notices.length===0&&<p className="no-notifications">Nenhuma notificação ainda.</p>}</div>}</div>{admin && <button className="admin-nav-btn" onClick={()=>{setAdminOpen(!adminOpen);setSelected(null)}}>{adminOpen?'VER SITE':'PAINEL ADMIN'}</button>}<span><UserCircle size={18}/> {String(user.user_metadata?.display_name || user.email?.split('@')[0] || 'Conta')}</span><button className="logout" onClick={logout} title="Sair"><LogOut size={17}/></button></div> : <button className="btn btn-outline nav-login" onClick={() => {setAuthMode('login');setAuthOpen(true)}}><UserCircle size={17}/> ENTRAR</button>}<button className="mobile-menu" aria-label="Abrir menu" onClick={() => setMenuOpen(!menuOpen)}><Menu/></button></div>
     </div></header>
-    {admin && adminOpen ? <AdminPanel mods={mods} feedbacks={feedbacks} onClose={()=>setAdminOpen(false)} onRefresh={async()=>{await refreshMods();await refreshFeedback()}}/> : !current ? <>
+    {admin && adminOpen ? <AdminPanel mods={mods} feedbacks={feedbacks} releases={releases} onReleasesChange={refreshReleases} onClose={()=>setAdminOpen(false)} onRefresh={async()=>{await refreshMods();await refreshFeedback()}}/> : !current ? <>
       <section className="hero"><div className="hero-scenery"/><div className="hero-grain"/><div className="shell hero-inner"><div className="eyebrow"><span className="eyebrow-line"/> RED DEAD REDEMPTION 2 · MODDING COMMUNITY</div><h1>YOUR VOICE.<br/><em>OUR FRONTIER.</em></h1><p>Seus comentários moldam nossos próximos mods. Explore os projetos, compartilhe suas ideias e ajude a construir experiências melhores no Velho Oeste.</p><div className="hero-buttons"><button className="btn btn-red" onClick={()=>document.getElementById('mods')?.scrollIntoView({behavior:'smooth'})}>EXPLORAR MODS <ArrowRight size={18}/></button><button className="btn btn-ghost" onClick={()=>document.getElementById('how')?.scrollIntoView({behavior:'smooth'})}>COMO FUNCIONA <ArrowDown size={18}/></button></div><div className="hero-stats"><div><strong>{mods.length.toString().padStart(2,'0')}</strong><span>MODS PUBLICADOS</span></div><div><strong>{feedbacks.length.toString().padStart(2,'0')}</strong><span>FEEDBACKS</span></div><div><strong>24/7</strong><span>ATUALIZAÇÃO AO VIVO</span></div></div></div><div className="hero-side-label">EST. 1899 · BUILT BY THE COMMUNITY</div></section>
       <main><section id="mods" className="mods-section shell"><div className="section-top"><div><div className="kicker">// EXPLORE THE COLLECTION</div><h2>THE <span>MODS.</span></h2><p>Escolha um projeto, avalie sua experiência e conte o que pode melhorar.</p></div><div className="searchbox"><Search size={19}/><input value={filter} onChange={e=>setFilter(e.target.value)} placeholder="Pesquisar mods..." aria-label="Pesquisar mods"/></div></div>
       {!configured && <div className="setup-banner"><Lock size={19}/><div><strong>Prévia de demonstração.</strong> Os cards estão disponíveis para visualizar o design. Para habilitar login, comentários e tempo real, configure o Supabase seguindo o README.</div></div>}
       {dbError && <div className="setup-banner">Não foi possível carregar os dados: {dbError}</div>}
-      <div className="mod-grid">{filtered.map((m,i)=><article key={m.id} className="mod-card"><div className={`mod-cover mod-cover-${i%3}`} style={m.cover_url?{backgroundImage:`linear-gradient(180deg, transparent, rgba(0,0,0,.77)), url("${m.cover_url.replace(/"/g, '')}")`}:undefined}><span className="mod-number">{String(i+1).padStart(2,'0')} / {String(mods.length).padStart(2,'0')}</span><span className="cover-art">{m.title.split(' ').slice(0,2).map(w=>w[0]).join('')}</span><span className="mod-type">{m.category}</span></div><div className="mod-body"><div className="mod-version"><span className="version-dot"/> {m.version}</div><h3>{m.title}</h3><p>{m.description}</p><div className="mod-rating">{stars(Number(average(m.id))||0)} <b>{average(m.id)}</b><span>({commentsFor(m.id).length} avaliações)</span></div><button className="mod-open" onClick={()=>{setSelected(m.id);window.scrollTo(0,0);setMessage('')}}>VER FEEDBACKS <ArrowRight size={19}/></button></div></article>)}</div>
+      <div className="v4-filter-row"><label>FILTRAR MODS <select value={categoryFilter} onChange={e=>setCategoryFilter(e.target.value)}><option value="all">Todas as categorias</option>{categories.map(c=><option key={c} value={c}>{c}</option>)}</select></label><span>{filtered.length} projetos encontrados</span></div><div className="mod-grid">{filtered.map((m,i)=><article key={m.id} className="mod-card"><div className={`mod-cover mod-cover-${i%3}`} style={m.cover_url?{backgroundImage:`linear-gradient(180deg, transparent, rgba(0,0,0,.77)), url("${m.cover_url.replace(/"/g, '')}")`}:undefined}><span className="mod-number">{String(i+1).padStart(2,'0')} / {String(mods.length).padStart(2,'0')}</span><span className="cover-art">{m.title.split(' ').slice(0,2).map(w=>w[0]).join('')}</span><span className="mod-type">{m.category}</span></div><div className="mod-body"><div className="mod-version"><span className="version-dot"/> {m.version}</div><h3>{m.title}</h3><p>{m.description}</p><div className="mod-rating">{stars(Number(average(m.id))||0)} <b>{average(m.id)}</b><span>({commentsFor(m.id).length} avaliações)</span></div><button className="mod-open" onClick={()=>{setSelected(m.id);window.scrollTo(0,0);setMessage('')}}>VER FEEDBACKS <ArrowRight size={19}/></button></div></article>)}</div>
       {filtered.length===0 && <div className="empty"><Search/><p>Nenhum mod encontrado. Tente outra pesquisa.</p></div>}</section>
       <section id="how" className="how-section"><div className="shell"><div className="kicker">// THE PROCESS</div><h2>MAKE YOUR <span>MARK.</span></h2><div className="how-grid"><div><span>01</span><MessageSquare size={28}/><h3>ESCOLHA UM MOD</h3><p>Explore os projetos disponíveis e encontre aquele que você utiliza.</p></div><div><span>02</span><Star size={28}/><h3>COMPARTILHE SUA OPINIÃO</h3><p>Avalie de 1 a 5 estrelas e escreva sugestões, elogios ou relatórios de bugs.</p></div><div><span>03</span><Radio size={28}/><h3>ACOMPANHE AO VIVO</h3><p>Novos comentários aparecem automaticamente. Você pode editar ou apagar os seus.</p></div></div></div></section></main>
     </> : <main className="detail shell"><button className="back" onClick={()=>{setSelected(null);setReviewOpen(false);window.scrollTo(0,0)}}><ArrowLeft size={18}/> VOLTAR AOS MODS</button><div className="detail-head"><div><div className="kicker">// MOD COMMUNITY · {current.category}</div><h1>{current.title}<span>.</span></h1><p>{current.description}</p><div className="detail-meta"><span className="tag">{current.version}</span><span>{stars(Number(average(current.id))||0)} <b>{average(current.id)}</b></span><span><MessageCircle size={16}/> {visibleComments.length} avaliações</span></div>{current.nexus_url && <a className="nexuslink" href={current.nexus_url} target="_blank" rel="noopener noreferrer">VER NA NEXUS MODS <ExternalLink size={16}/></a>}</div><div className="detail-emblem">{current.title.split(' ').slice(0,2).map(w=>w[0]).join('')}</div></div>
-      <div className="reviews-header"><div><div className="kicker">// COMMUNITY VOICES</div><h2>FEEDBACKS <span>({visibleComments.length})</span></h2><div className="live-line"><i/> Comentários sincronizados em tempo real</div></div><button className="btn btn-red" onClick={()=>openReview()}><Plus size={17}/> ESCREVER FEEDBACK</button></div>
+      <section className="v4-changelog"><div className="kicker">// CHANGELOG · HISTÓRICO DO MOD</div><h2>HISTÓRICO DE <span>ATUALIZAÇÕES.</span></h2>{releases.filter(r=>r.mod_id===current.id).length ? <div className="release-list">{releases.filter(r=>r.mod_id===current.id).map(r=><article key={r.id}><strong>{r.version}</strong><time>{date(r.published_at)}</time><p>{r.notes}</p></article>)}</div>:<p className="release-empty">Nenhuma atualização publicada até agora.</p>}</section><div className="reviews-header"><div><div className="kicker">// COMMUNITY VOICES</div><h2>FEEDBACKS <span>({visibleComments.length})</span></h2><div className="live-line"><i/> Comentários sincronizados em tempo real</div></div><button className="btn btn-red" onClick={()=>openReview()}><Plus size={17}/> ESCREVER FEEDBACK</button></div>
       {message && !reviewOpen && <div className="inline-message">{message}</div>}{socialError && <div className="inline-message">{socialError}</div>}
-      <div className="reviews-layout"><div className="review-list"><div className="sortbar"><span>AVALIAÇÕES DA COMUNIDADE</span><label>ORDENAR POR <select value={sort} onChange={e=>setSort(e.target.value)}><option value="recent">Mais recentes</option><option value="highest">Maior nota</option><option value="lowest">Menor nota</option></select><ChevronDown size={13}/></label></div>
+      <div className="v4-filter-row"><label>TIPO DE FEEDBACK <select value={searchKind} onChange={e=>setSearchKind(e.target.value)}><option value="all">Todos os tipos</option><option value="bug">Relatos de bug</option><option value="suggestion">Sugestões</option><option value="review">Avaliações</option></select></label></div><div className="reviews-layout"><div className="review-list"><div className="sortbar"><span>AVALIAÇÕES DA COMUNIDADE</span><label>ORDENAR POR <select value={sort} onChange={e=>setSort(e.target.value)}><option value="recent">Mais recentes</option><option value="highest">Maior nota</option><option value="lowest">Menor nota</option></select><ChevronDown size={13}/></label></div>
       {visibleComments.map(f=><article className="review" key={f.id}><div className="review-avatar">{f.author_name[0]?.toUpperCase() || '?'}</div><div className="review-content"><div className="review-top"><div><strong>{f.author_name}</strong> {f.user_id===user?.id && <span className="you">VOCÊ</span>}<div className="review-stars">{stars(f.rating,15)} <span className="feedback-kind">{kindLabel[f.kind]||f.kind}</span></div></div><time><Clock3 size={13}/> {date(f.created_at)}</time></div><p>{f.content}</p>{f.is_featured && <div className="featured">★ SUGESTÃO EM DESTAQUE</div>}{f.admin_reply && <div className="developer-reply"><strong>RESPOSTA DO DESENVOLVEDOR</strong><p>{f.admin_reply}</p></div>}<div className="thread-controls"><button className={likes.some(l=>l.user_id===user?.id && l.feedback_id===f.id)?'liked':''} onClick={()=>void likeTarget(f.id,null)}><ThumbsUp size={15}/> Curtir ({likes.filter(l=>l.feedback_id===f.id).length})</button><button onClick={()=>{if(!user){setAuthOpen(true);return}setReplyTo({feedbackId:f.id,parentId:null});setReplyBody('')}}><MessageCircle size={15}/> Responder ({replies.filter(r=>r.feedback_id===f.id).length})</button></div>
       {replyTo?.feedbackId===f.id && replyTo.parentId===null && replyComposer(f.id,null)}
       {replyTree(f.id,null)}
