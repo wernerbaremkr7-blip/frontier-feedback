@@ -84,3 +84,5 @@ on conflict (user_id) do nothing;
 O painel mostra contadores de mods, feedbacks, bugs, sugestões e itens não resolvidos. No editor de feedback, o desenvolvedor pode ajustar o status (novo, em análise, planejado ou resolvido) e deixar uma resposta oficial, sem poder alterar o texto ou a nota de um comentário escrito por outra pessoa. A exclusão de feedback continua exclusiva do próprio autor.
 
 **Atualização de uma instalação existente:** execute novamente o SQL completo; ele foi feito para adicionar as colunas e políticas do painel a bancos existentes. Faça backup antes de alterações em produção. O painel não funciona em modo de demonstração, sem Supabase configurado.
+Frontier Feedback V2 - Deploy inicial
+6.
