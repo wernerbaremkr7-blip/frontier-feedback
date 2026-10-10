@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ArrowLeft, Bug, CheckCircle2, ExternalLink, MessageSquare, Pencil, Plus, Save, ShieldCheck, Trash2, X } from 'lucide-react'
+import { ArrowLeft, Bug, CheckCircle2, MessageSquare, Pencil, Plus, Save, ShieldCheck, Trash2, X } from 'lucide-react'
 import type { Feedback, Mod } from './lib'
 import { errorMessage, supabase } from './lib'
 
