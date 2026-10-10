@@ -15,3 +15,106 @@
 
 /* Frontier Feedback V4 */
 .v4-filter-row{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:18px 0 25px;color:#b8b0a5;font-size:12px;letter-spacing:.07em}.v4-filter-row label{display:flex;align-items:center;gap:12px}.v4-filter-row select,.v4-release-admin select,.v4-release-admin input,.v4-release-admin textarea{background:#1b1a19;color:#eee7dc;border:1px solid #51473b;border-radius:6px;padding:11px;max-width:100%}.v4-changelog{border:1px solid #504639;background:linear-gradient(135deg,#201d19,#151413);padding:30px;margin:32px 0}.v4-changelog h2{font-size:clamp(23px,3vw,35px);margin:14px 0}.v4-changelog h2 span{color:#c89964}.release-list{display:grid;gap:12px}.release-list article{border-left:3px solid #a33a2d;background:#ffffff07;padding:15px 20px}.release-list strong{font-size:18px;color:#ead0a6}.release-list time{margin-left:18px;color:#aaa;font-size:12px}.release-list p{white-space:pre-wrap;line-height:1.6;margin:9px 0 0}.release-empty{color:#ad9d8a}.v4-release-admin{padding:20px 0}.v4-release-admin h2,.v4-insights h2{margin-bottom:15px}.v4-release-admin form{display:grid;gap:15px;max-width:650px}.v4-release-admin form label{display:grid;gap:8px;font-size:12px;letter-spacing:.08em}.v4-release-admin form button{justify-self:start}.v4-release-admin-list{margin-top:30px;display:grid;gap:12px}.v4-release-admin-list article{display:flex;gap:18px;justify-content:space-between;align-items:center;border:1px solid #494035;padding:18px}.v4-release-admin-list p{white-space:pre-wrap;color:#b9b0a8;margin:8px 0}.v4-release-admin-list button{display:flex;align-items:center;gap:7px;background:transparent;color:#e9a59b;border:1px solid #78443f;border-radius:4px;padding:8px 12px;cursor:pointer}.v4-insights{padding:22px;border:1px solid #4a4239;margin:20px 0}.v4-insights>div{display:grid;grid-template-columns:1fr auto auto;gap:20px;align-items:center;padding:12px 0;border-bottom:1px solid #ffffff15}.v4-insights strong{color:#d5a36e}.v4-insights small{color:#a69c90}@media(max-width:600px){.v4-changelog{padding:19px}.v4-insights>div{grid-template-columns:1fr auto}.v4-insights small{grid-column:1/-1}.v4-release-admin-list article{align-items:flex-start;flex-direction:column}}
+
+
+/* ================================================================
+   FRONTIER FEEDBACK · CINEMATIC UI UPDATE
+   Non-destructive visual layer. No API/auth/data behavior changes.
+   ================================================================ */
+:root{--frontier-red:#db5144;--frontier-gold:#e4b67a;--frontier-cream:#f2ebe2;--frontier-ease:cubic-bezier(.22,1,.36,1);color-scheme:dark}
+::selection{background:#a94437;color:#fff}
+body{background:radial-gradient(ellipse 1000px 600px at 70% -120px,#5e342020,transparent 70%),#11110f}
+button,textarea,input,select,a{-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--frontier-gold)!important;outline-offset:3px}
+.site{isolation:isolate}
+.site::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:radial-gradient(#dfc2a00c 0.7px,transparent .7px);background-size:6px 6px;opacity:.22}
+.topbar{position:relative;background:#15120ff0;border-bottom-color:#aa755c35;box-shadow:0 12px 40px #0002}
+.topbar:after{content:"";height:1px;position:absolute;bottom:-1px;left:0;right:0;background:linear-gradient(90deg,transparent,#db514453,transparent);pointer-events:none}
+.brand-mark{transition:transform .55s var(--frontier-ease),box-shadow .35s ease;box-shadow:0 0 0 1px #be564525}
+.brand:hover .brand-mark{transform:rotate(-5deg) scale(1.045);box-shadow:0 0 22px #be564533}
+.nav-links button,.nav-links a{position:relative;transition:color .23s ease,transform .23s ease}
+.nav-links button:hover,.nav-links a:hover{transform:translateY(-2px);color:var(--frontier-cream)}
+.btn,.admin-nav-btn{transition:transform .3s var(--frontier-ease),background .25s ease,border-color .25s ease,box-shadow .3s ease,filter .25s ease}
+.btn:not(:disabled):hover,.admin-nav-btn:hover{transform:translateY(-3px);box-shadow:0 12px 26px #0005}
+.btn-red{background:linear-gradient(135deg,#d24b3c,#a82723);box-shadow:inset 0 1px #f2a09833,0 9px 25px #8a201725}
+.btn-red:hover{background:linear-gradient(135deg,#ec5d4d,#bd302a);box-shadow:inset 0 1px #ffc8b044,0 12px 30px #b62c2860!important}
+.btn:active,.admin-nav-btn:active{transform:translateY(0) scale(.975)!important}
+.btn:disabled{cursor:not-allowed;opacity:.55}
+.hero{overflow:hidden;background:#171411}
+.hero-scenery{transform:scale(1.06);animation:frontierHeroReveal 1.6s var(--frontier-ease) both,frontierHeroDrift 26s ease-in-out 1.6s infinite alternate;will-change:transform}
+.hero-grain{background:radial-gradient(ellipse at 75% 48%,#ad643b24,transparent 56%),linear-gradient(0deg,#14121055,transparent 50%)}
+.hero-inner{animation:frontierEnter .85s var(--frontier-ease) both}
+.hero h1{text-shadow:0 6px 40px #0007;letter-spacing:-2.5px}
+.hero h1 em{background:linear-gradient(135deg,#f36e55,#a92e29);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero .eyebrow{animation:frontierEnter .85s .10s var(--frontier-ease) both}
+.hero-inner>p{animation:frontierEnter .85s .19s var(--frontier-ease) both}
+.hero-buttons{animation:frontierEnter .85s .28s var(--frontier-ease) both;flex-wrap:wrap}
+.hero-stats{animation:frontierEnter .9s .4s var(--frontier-ease) both}
+.hero-stats>div{transition:transform .35s var(--frontier-ease)}
+.hero-stats>div:hover{transform:translateY(-5px)}
+.status i,.live-line i{animation:frontierPulse 2.7s ease-in-out infinite}
+.mods-section{position:relative}
+.section-top h2,.how-section h2,.reviews-header h2{letter-spacing:-1.5px}
+.searchbox{transition:border-color .25s ease,box-shadow .25s ease,background .25s ease}
+.searchbox:focus-within{border-color:#c26751;background:#211a17;box-shadow:0 0 0 3px #c2675118,0 9px 24px #0003}
+.mod-grid{gap:25px}
+.mod-card{position:relative;border-color:#5a41332c;background:linear-gradient(158deg,#241e19,#181614 70%);box-shadow:0 6px 30px #0000001c;transition:transform .45s var(--frontier-ease),box-shadow .45s ease,border-color .35s ease;animation:frontierEnter .7s var(--frontier-ease) both}
+.mod-card:nth-child(2){animation-delay:.1s}.mod-card:nth-child(3){animation-delay:.2s}.mod-card:nth-child(4){animation-delay:.28s}.mod-card:nth-child(5){animation-delay:.35s}
+.mod-card:hover{transform:translateY(-9px);box-shadow:0 22px 50px #0008,0 0 0 1px #b9634922;border-color:#9f604a}
+.mod-cover{isolation:isolate;transition:filter .5s ease}
+.mod-cover::after{transition:opacity .45s ease}
+.mod-card:hover .mod-cover{filter:contrast(1.06) saturate(1.15)}
+.mod-card:hover .mod-cover::after{opacity:.65}
+.cover-art{transition:transform .7s var(--frontier-ease),opacity .7s ease}
+.mod-card:hover .cover-art{transform:rotate(-3deg) scale(1.14);opacity:.8}
+.mod-body h3{transition:color .25s ease}
+.mod-card:hover .mod-body h3{color:#f2d6c4}
+.mod-open{transition:color .25s ease,letter-spacing .35s var(--frontier-ease)}
+.mod-open:hover{letter-spacing:2px}
+.mod-open svg,.nexuslink svg,.btn svg{transition:transform .3s var(--frontier-ease)}
+.mod-open:hover svg,.nexuslink:hover svg,.btn:hover svg{transform:translateX(3px)}
+.how-section{background:linear-gradient(180deg,#201a16,#191713)}
+.how-grid>div{padding:23px 20px 24px;border:1px solid #4c362b60;border-top:2px solid #81513c;background:linear-gradient(150deg,#38251a25,transparent);transition:transform .4s var(--frontier-ease),border-color .3s ease,background .3s ease}
+.how-grid>div:hover{transform:translateY(-6px);border-color:#a060494c;background:#3d281e40}
+.detail{animation:frontierEnter .7s var(--frontier-ease) both}
+.detail-head{position:relative;background:radial-gradient(ellipse at 88% 35%,#8c473b38,transparent 55%),linear-gradient(105deg,#30241e,#171513);border-color:#74513d77;box-shadow:0 18px 45px #0003}
+.detail-head:before{content:"";position:absolute;inset:0;pointer-events:none;border:1px solid #fff1}
+.review{transition:background .32s ease,padding .35s ease,border-color .35s ease;border-radius:3px}
+.review:hover{background:#c0834610;border-bottom-color:#80503b77}
+.review-avatar{transition:transform .3s var(--frontier-ease),box-shadow .3s ease}
+.review:hover .review-avatar{transform:scale(1.06) rotate(-3deg);box-shadow:0 7px 17px #0005}
+.review-bottom button,.thread-controls button,.thread-actions button,.bell-button,.back,.logout{transition:color .25s ease,transform .25s var(--frontier-ease)}
+.review-bottom button:hover,.thread-controls button:hover,.thread-actions button:hover,.bell-button:hover,.back:hover{transform:translateY(-2px)}
+.thread-reply{border-left-color:#966144;background:linear-gradient(100deg,#3c291d65,#201b17);transition:border-color .28s ease,background .28s ease}
+.thread-reply:hover{border-left-color:#e4aa74;background:#44302069}
+.feedback-kind,.tag{border-radius:3px}
+.score-card,.aside-tip,.v4-changelog,.v4-insights{box-shadow:0 12px 36px #00000024}
+.score-card{background:radial-gradient(ellipse at 90% 0,#8b432a24,transparent 58%),#1d1b18}
+.v4-changelog{border-color:#8c654c80;background:linear-gradient(125deg,#33251d,#1c1916 74%);position:relative;overflow:hidden}
+.v4-changelog::after{content:"";position:absolute;pointer-events:none;right:-90px;top:-120px;width:310px;height:310px;border:1px solid #b8845930;border-radius:50%;box-shadow:0 0 0 35px #b8845909,0 0 0 70px #b8845908}
+.release-list article{position:relative;transition:background .3s ease,transform .3s var(--frontier-ease),border-color .3s ease}
+.release-list article:hover{transform:translateX(5px);background:#e4ad7612;border-left-color:#e1a56c}
+.notification-list{border-color:#a16d50;background:#211b17;box-shadow:0 20px 65px #000b;animation:frontierDropdown .24s var(--frontier-ease) both;transform-origin:top right}
+.notification-row{transition:background .2s ease,padding-left .25s ease}
+.notification-row:hover{background:#7c4d303b;padding-left:19px}
+.modal-backdrop{animation:frontierBackdrop .22s ease both;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+.modal{animation:frontierModal .38s var(--frontier-ease) both;box-shadow:0 28px 90px #000b,0 0 0 1px #d49c6222}
+.modal input,.modal textarea,.modal select,.reply-composer textarea,.v4-release-admin input,.v4-release-admin textarea{transition:border-color .25s ease,box-shadow .25s ease,background .25s ease}
+.modal input:focus,.modal textarea:focus,.modal select:focus,.reply-composer textarea:focus,.v4-release-admin input:focus,.v4-release-admin textarea:focus{border-color:#d49a66;box-shadow:0 0 0 3px #ca774923;background-color:#251c18;outline:none}
+.rating-picker button{transition:transform .26s var(--frontier-ease),filter .25s ease}
+.rating-picker button:hover{transform:translateY(-4px) scale(1.13);filter:drop-shadow(0 0 8px #d59c5044)}
+.rating-picker button:active{transform:scale(.96)}
+.admin-stats>div,.admin-mods article,.admin-feedbacks article,.v4-release-admin-list article{transition:transform .32s var(--frontier-ease),border-color .25s ease,background .25s ease}
+.admin-stats>div:hover,.admin-mods article:hover,.admin-feedbacks article:hover,.v4-release-admin-list article:hover{transform:translateY(-3px);border-color:#a66c4e}
+.admin-actions button,.v4-release-admin-list button{transition:background .25s ease,transform .25s var(--frontier-ease)}
+.admin-actions button:hover,.v4-release-admin-list button:hover{background:#784b312d;transform:translateY(-2px)}
+/* Animations never block clicks or affect layout measurements. */
+@keyframes frontierEnter{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes frontierHeroReveal{from{opacity:.5;transform:scale(1.13)}to{opacity:1;transform:scale(1.06)}}
+@keyframes frontierHeroDrift{from{transform:scale(1.06) translateX(0)}to{transform:scale(1.12) translateX(-1.5%)}}
+@keyframes frontierPulse{0%,100%{box-shadow:0 0 0 3px #71956825}50%{box-shadow:0 0 0 7px #71956809}}
+@keyframes frontierBackdrop{from{opacity:0}to{opacity:1}}
+@keyframes frontierModal{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes frontierDropdown{from{opacity:0;transform:translateY(-7px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:760px){.hero-scenery{animation:frontierHeroReveal 1s var(--frontier-ease) both}.hero h1{letter-spacing:-1.5px}.mod-card:hover{transform:translateY(-4px)}.how-grid>div:hover{transform:none}.modal-backdrop{backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}.hero-scenery,.hero-inner,.hero .eyebrow,.hero-inner>p,.hero-buttons,.hero-stats,.mod-card,.detail{opacity:1!important;transform:none!important}}
